@@ -39,3 +39,14 @@ class ExpensesDB:
             )
             conn.commit()
             return cursor.lastrowid
+
+    def largest_10_purchases(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT * FROM expenses
+                WHERE transaction_type NOT LIKE ?
+                ORDER BY cost DESC
+                LIMIT 10
+            ''', ('%Debit%',))
+            return cursor.fetchall()

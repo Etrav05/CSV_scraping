@@ -59,7 +59,6 @@ def debit_finder(line):
     else:
         return "Credit"
 
-
 db = ExpensesDB()  # Set up the database
 
 def main():
@@ -91,6 +90,13 @@ def main():
     for category, costs in monthlyCosts.items():
         if category != "month":  # Skip the "month" key
             print(f"{category}: {costs}")
+
+    top_10_purchases = db.largest_10_purchases()
+
+    print("\n=== Top 10 Largest Purchases ===\n")
+    for i, expense in enumerate(top_10_purchases, 1):
+        id, year_month, cost, price_cat, trans_type, vendor = expense
+        print(f"{i}. ${cost:>7.2f} - {vendor} ({year_month})")
 
 if __name__ == "__main__":
     main()
