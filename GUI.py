@@ -117,7 +117,7 @@ class ExpenseApp:
         self.status_label.pack(pady=20)
 
     def browse_file(self):
-        """Open file dialog to browse for CSV file"""
+        """Open file dialog to browse for CSV files"""
         from tkinter import filedialog
         filename = filedialog.askopenfilename(
             title="Select CSV File",
