@@ -4,9 +4,10 @@ from database import ExpensesDB
 
 class ExpenseApp:
     def __init__(self, root):
+        self.file_path_entry = None
         self.db = ExpensesDB()
         self.root = root
-        self.root.title("Expense Tracker")
+        self.root.title("Expense Analyzer 3000")
         self.root.geometry("800x600")
 
         # Container for all frames
@@ -37,7 +38,7 @@ class ExpenseApp:
         # Instructions
         instructions = tk.Label(
             self.container,
-            text="Paste the file path to your CSV file below and click 'Process File'",
+            text="Paste/Browse for the file path to your CSV file below and click 'Process File'",
             font=('Arial', 12),
             fg='gray'
         )
@@ -63,17 +64,17 @@ class ExpenseApp:
         )
         self.file_path_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        # Browse button (optional - uses file dialog)
+        # Browse button (Uses file dialog)
         browse_btn = tk.Button(
             input_frame,
             text="Browse...",
             command=self.browse_file,
-            font=('Arial', 10),
+            font=('Arial', 9),
             bg='#9E9E9E',
             fg='white',
             cursor='hand2'
         )
-        browse_btn.grid(row=0, column=2, padx=10, pady=10)
+        browse_btn.grid(row=0, column=2, padx=15, pady=10)
 
         # Button frame
         button_frame = tk.Frame(self.container)
@@ -82,7 +83,7 @@ class ExpenseApp:
         # Process button
         process_btn = tk.Button(
             button_frame,
-            text="📊 Process File",
+            text="🔍 Process File",
             command=self.process_file,
             font=('Arial', 14),
             bg='#4CAF50',
@@ -166,20 +167,29 @@ class ExpenseApp:
         # Title
         title = tk.Label(
             self.container,
-            text="💰 EXPENSE TRACKER 💰",
+            text="💰 EXPENSE ANALYZER 3000 💰",
             font=('Arial', 32, 'bold'),
-            pady=30
+            pady=20
         )
         title.pack()
 
-        # Subtitle
-        subtitle = tk.Label(
+        # Subtitle 1
+        subtitle_name = tk.Label(
+            self.container,
+            text="By: Evan Travis",
+            font=('Arial', 10),
+            fg='gray'
+        )
+        subtitle_name.pack(pady=0)
+
+        # Subtitle 2
+        subtitle_instruction = tk.Label(
             self.container,
             text="Select a query to view your expenses",
             font=('Arial', 14),
             fg='gray'
         )
-        subtitle.pack(pady=10)
+        subtitle_instruction.pack(pady=10)
 
         # Menu buttons frame
         button_frame = tk.Frame(self.container)
@@ -191,7 +201,7 @@ class ExpenseApp:
             ("📅 Monthly Summary", self.show_monthly_summary),
             ("🏪 Spending by Vendor", self.show_by_vendor),
             ("💳 Spending by Transaction Type", self.show_by_transaction_type),
-            ("📈 All Expenses", self.show_all_expenses)
+            ("💲 All Expenses", self.show_all_expenses)
         ]
 
         for text, command in queries:
