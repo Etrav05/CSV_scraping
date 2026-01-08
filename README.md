@@ -1,6 +1,9 @@
 # Expense Tracker
 A simple desktop application to analyze your expenses from CSV files.
 
+<img width="801" height="630" alt="image" src="https://github.com/user-attachments/assets/e4658647-d037-4270-aeda-9641cab7506a" />
+
+
 ## Features
 - Import expenses from CSV files
 - View top 10 largest purchases
