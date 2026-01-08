@@ -36,7 +36,6 @@ categories = {
     "income": ["internet deposit", "electronic funds transfer credit"],
 }
 '''
-path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
 
 def price_categorization(cost):
     if cost < 10.00:
@@ -60,15 +59,12 @@ def debit_finder(line):
         return "Credit"
 
 db = ExpensesDB()  # Set up the database
+# path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
 
-def main():
-    if os.path.exists(path):
-        print('-- Exists --')
+def process_csv(path, database):
+    with open(path, "r") as file:
+        records_added = 0  # Track how many records added
 
-    if os.path.isfile(path):
-        print('== This is a file ==')
-
-    with open("C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt", "r") as file:
         for line in file:
             line = line.strip().rstrip(',')  # Remove trailing spaces and commas
             date = line.split(',')[0]  # Get the first part (date)
@@ -81,22 +77,6 @@ def main():
 
             print(f"{year_month} - ${cost:.2f} - {price_cat} - {debit_test}")
             db.add_expense(year_month, cost, price_cat, debit_test, vendor="")
+            records_added += 1
 
-    for category, costs in monthlyCosts.items():  # Rounding monthly costs
-        if category != "month":  # Skip the "month" key
-            monthlyCosts[category] = [round(cost, 2) for cost in costs]
-
-    print("\nMonthly Costs:")
-    for category, costs in monthlyCosts.items():
-        if category != "month":  # Skip the "month" key
-            print(f"{category}: {costs}")
-
-    top_10_purchases = db.largest_10_purchases()
-
-    print("\n=== Top 10 Largest Purchases ===\n")
-    for i, expense in enumerate(top_10_purchases, 1):
-        id, year_month, cost, price_cat, trans_type, vendor = expense
-        print(f"{i}. ${cost:>7.2f} - {vendor} ({year_month})")
-
-if __name__ == "__main__":
-    main()
+        return records_added
