@@ -51,6 +51,15 @@ def price_categorization(cost):
     else:   # > 10000.0
         return "Massive"
 
+def debit_finder(line):
+    debit_term = "INTERNET DEPOSIT"
+
+    if debit_term in line:
+        return "Debit"
+
+    else:
+        return "Credit"
+
 def main():
     if os.path.exists(path):
         print('-- Exists --')
@@ -67,11 +76,9 @@ def main():
             cost = float(line.split(',')[-1])  # Extract the value (cost)
 
             price_cat = price_categorization(cost)
+            debit_test = debit_finder(line)
 
-            print(f"{year_month} - ${cost:.2f} - {price_cat}")
-
-            if year_month in monthlyCosts["month"]:  # Find the index of the month in the "month" list
-                index = monthlyCosts["month"].index(year_month)  # Add the cost to the corresponding month and category
+            print(f"{year_month} - ${cost:.2f} - {price_cat} - {debit_test}")
 
     for category, costs in monthlyCosts.items():  # Rounding monthly costs
         if category != "month":  # Skip the "month" key
