@@ -1,47 +1,86 @@
 import os
 
-# def yearmonth(Year, month, foodValues):
-
-foodValues = {}  # list of values spent on food
-
-categories = {
-    "food_list": ["subway", "popeyes", "sunset", "dairy queen", "tim hortons", "wendy's", "famous wok", "lcbo/rao",
-                  "cafe", "boston", "roxbury", "chicken", "swiss", "bulk", "mcdonald's", "coke", "sh", "bitter end",
-                  "starbucks", "domino's", "harveys", "valens", "wayback", "hasty", "panera", "settlers", "twice",
-                  "montana's", "keg", "collins", "ada*vending", "willie's", "a1", "big bear", "parkside", "ichiki",
-                  "rockton berry", "foodland", "jax sweet", "mr gao", "arby's", "sports bar", "kfc", "beaner munky",
-                  "chungchun rice", "brant county", "dominos", "yogurtys froyo", "dyments farm", "sobeys",
-                  "willie dog", "mcmaster hospit", "m m bar", "thirsty cactus", "marcy's berries"],
-
-    "store_list": ["dollarama", "shoppers", "staples", "galaxy", "indigo", "flying", "urban", "rockton", "ibowl",
-                   "archies"],
-
-    "petrol_list": []
+monthlyCosts = {
+    "month": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06",
+               "2024-07", "2024-08", "2024-09", "2024-010", "2024-11", "2024-12",],
+    "Credit": [0.0] * 12,  # Initialize with 12 months of 0.0
+    "Debit": [0.0] * 12,
 }
+
+'''
+categories = {
+    "food": ["subway", "popeyes", "sunset", "dairy queen", "tim hortons", "wendy's", "famous wok",
+             "cafe", "boston", "roxbury", "chicken", "swiss", "bulk barn", "mcdonald's", "coke", "bitter end",
+             "starbucks", "domino's", "harveys", "valens", "wayback", "hasty", "panera", "settlers", "twice",
+             "montana's", "keg", "collins", "ada*vending", "willie's", "a1", "big bear", "parkside", "ichiki",
+             "rockton berry", "foodland", "jax sweet", "mr gao", "arby's", "sports bar", "kfc", "beaner munky",
+             "chungchun rice", "brant county", "dominos", "yogurtys froyo", "dyments farm", "sobeys",
+             "willie dog", "mcmaster hospit", "m m bar", "thirsty cactus", "marcy's berries", "metro", "zehrs",
+             "sh vending", "cafe domestiiqu", "lagershed", "jesses tap gr", "bitter end", "cabin coffee",
+             "rockton lions"],
+
+    "living": ["shoppers drug", "staples", "urban", "archies", "sport chek", "boathouse " ],
+
+    "transport": ["metrolinx"],
+
+    "tuition": ["conestoga", "mcmaster university"],
+
+    "entertainment": ["galaxy cinemas", "indigo", "flying", "ibowl" "rockton", "crunchyroll", "k1 speed"],
+
+    "gas": ["petro canada"],
+
+    "other": ["dollarama", "fuald'd motel", "dollar planet", "swiss plus", "amazon", "electronic funds transfer debit",
+              "e-transfer", "amazon.ca", "lcbo/rao", "lcbo", "walmart", "electronic funds transfer preauthorized debit",
+              "amzn mktp", "canadian tire", "sail outdoors", "mcmaster campus", "body shop"],
+
+    "income": ["internet deposit", "electronic funds transfer credit"],
+}
+'''
 
 path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
 
-if os.path.exists(path):
-    print('-- Exists --')
+def price_categorization(cost):
+    if cost < 10.00:
+        return "Small"
+    elif cost < 100.00:
+        return "Medium"
+    elif cost < 1000.00:
+        return "Large"
+    elif cost < 10000.00:
+        return "Extreme"
+    else:   # > 10000.0
+        return "Massive"
 
-if os.path.isfile(path):
-    print('== This is a file ==')
+def main():
+    if os.path.exists(path):
+        print('-- Exists --')
 
-with open("C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt", "r") as file:
-    for line in file:
-        line = line.strip().rstrip(',')  # Remove trailing spaces and commas
-        date = line.split(',')[0]  # Get the first part (date)
-        year_month = '-'.join(date.split('-')[:2])  # Extract year-month
+    if os.path.isfile(path):
+        print('== This is a file ==')
 
-        if any(word.lower() in line.lower() for word in categories["food_list"]):  # Isolating all food purchases
-            foodMatch = next(word for word in categories["food_list"] if word.lower() in line.lower())
-            foodCost = float(line.split(',')[-1])  # Extract the last part (cost)
+    with open("C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt", "r") as file:
+        for line in file:
+            line = line.strip().rstrip(',')  # Remove trailing spaces and commas
+            date = line.split(',')[0]  # Get the first part (date)
+            year_month = '-'.join(date.split('-')[:2])  # Extract year-month
 
-            if year_month not in foodValues:
-                foodValues[year_month] = []
-            foodValues[year_month].append(foodCost)
+            cost = float(line.split(',')[-1])  # Extract the value (cost)
 
-            #  print(f"{date}, {foodMatch}, {foodCost}")
+            price_cat = price_categorization(cost)
 
-for year_month, cost in foodValues.items():
-    print(f"{year_month} - {sum(cost):.2f}")
+            print(f"{year_month} - ${cost:.2f} - {price_cat}")
+
+            if year_month in monthlyCosts["month"]:  # Find the index of the month in the "month" list
+                index = monthlyCosts["month"].index(year_month)  # Add the cost to the corresponding month and category
+
+    for category, costs in monthlyCosts.items():  # Rounding monthly costs
+        if category != "month":  # Skip the "month" key
+            monthlyCosts[category] = [round(cost, 2) for cost in costs]
+
+    print("\nMonthly Costs:")
+    for category, costs in monthlyCosts.items():
+        if category != "month":  # Skip the "month" key
+            print(f"{category}: {costs}")
+
+if __name__ == "__main__":
+    main()
