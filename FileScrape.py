@@ -1,4 +1,5 @@
 import os
+from database import ExpensesDB
 
 monthlyCosts = {
     "month": ["2024-01", "2024-02", "2024-03", "2024-04", "2024-05", "2024-06",
@@ -6,7 +7,6 @@ monthlyCosts = {
     "Credit": [0.0] * 12,  # Initialize with 12 months of 0.0
     "Debit": [0.0] * 12,
 }
-
 '''
 categories = {
     "food": ["subway", "popeyes", "sunset", "dairy queen", "tim hortons", "wendy's", "famous wok",
@@ -36,7 +36,6 @@ categories = {
     "income": ["internet deposit", "electronic funds transfer credit"],
 }
 '''
-
 path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
 
 def price_categorization(cost):
@@ -60,6 +59,9 @@ def debit_finder(line):
     else:
         return "Credit"
 
+
+db = ExpensesDB()  # Set up the database
+
 def main():
     if os.path.exists(path):
         print('-- Exists --')
@@ -79,6 +81,7 @@ def main():
             debit_test = debit_finder(line)
 
             print(f"{year_month} - ${cost:.2f} - {price_cat} - {debit_test}")
+            db.add_expense(year_month, cost, price_cat, debit_test, vendor="")
 
     for category, costs in monthlyCosts.items():  # Rounding monthly costs
         if category != "month":  # Skip the "month" key

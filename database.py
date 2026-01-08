@@ -1,0 +1,41 @@
+import sqlite3
+from contextlib import contextmanager
+
+class ExpensesDB:
+    def __init__(self, db_name='expenses.db'):
+        self.db_name = db_name
+        self.init_db()
+
+    @contextmanager
+    def get_connection(self):
+        conn = sqlite3.connect('expenses.db')
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+    def init_db(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS expenses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    year_month TEXT NOT NULL,
+                    cost REAL,
+                    price_category TEXT,
+                    transaction_type TEXT,
+                    vendor TEXT
+                )
+            ''')
+            conn.commit()
+
+    def add_expense(self, year_month, cost, price_cat, transaction_type, vendor=""):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO expenses(year_month, cost, price_category, transaction_type, vendor)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (year_month, cost, price_cat, transaction_type, vendor)
+            )
+            conn.commit()
+            return cursor.lastrowid
