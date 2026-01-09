@@ -49,7 +49,7 @@ class ExpensesDB:
                 WHERE transaction_type NOT LIKE ?
                 ORDER BY cost DESC
                 LIMIT 10
-            ''', ('%Debit%',))
+            ''', ('%Credit%',))
             return cursor.fetchall()
 
     def total_debits_credits(self):
