@@ -62,21 +62,36 @@ db = ExpensesDB()  # Set up the database
 # path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
 
 def process_csv(path, database):
-    with open(path, "r") as file:
-        records_added = 0  # Track how many records added
+    records_added = 0  # Track how many records added
 
+    with open(path, "r") as file:
         for line in file:
             line = line.strip().rstrip(',')  # Remove trailing spaces and commas
-            date = line.split(',')[0]  # Get the first part (date)
+            parts = line.split(',')  # split the line up into parts
+
+            date = parts[0]  # Get the first part (date)
             year_month = '-'.join(date.split('-')[:2])  # Extract year-month
 
-            cost = float(line.split(',')[-1])  # Extract the value (cost)
+            description = parts[1] if len(parts) > 1 else ""  # Get the description of the transaction for later
+
+            # BIG CHANGE, credits and debits seem to have their own columns, therefore we can parse & classify them here
+            debit_amount = parts[2] if len(parts) > 2 and parts[2] else None
+            credit_amount = parts[3] if len(parts) > 3 and parts[3] else None
+
+            if debit_amount:
+                cost = float(debit_amount)
+                transaction_type = "Debit"
+            elif credit_amount:
+                cost = float(credit_amount)
+                transaction_type = "Credit"
+            else:
+                continue  # Skip if no amount
 
             price_cat = price_categorization(cost)
-            debit_test = debit_finder(line)
+            # vendor = process_vendor(description)  # TODO
 
-            print(f"{year_month} - ${cost:.2f} - {price_cat} - {debit_test}")
-            db.add_expense(year_month, cost, price_cat, debit_test, vendor="")
+            print(f"{year_month} - ${cost:.2f} - {price_cat} - {transaction_type}")
+            db.add_expense(year_month, cost, price_cat, transaction_type, vendor="")
             records_added += 1
 
         return records_added

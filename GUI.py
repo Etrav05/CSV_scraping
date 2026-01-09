@@ -197,10 +197,9 @@ class ExpenseApp:
 
         # Query buttons
         queries = [
-            ("📊 Top 10 Largest Purchases", self.show_top_10),
+            ("📝 Queries", self.show_queries_page),
+            ## ("📊 Top 10 Largest Purchases", self.show_top_10),
             ("📅 Monthly Summary", self.show_monthly_summary),
-            ("🏪 Spending by Vendor", self.show_by_vendor),
-            ("💳 Spending by Transaction Type", self.show_by_transaction_type),
             ("💲 All Expenses", self.show_all_expenses)
         ]
 
@@ -237,8 +236,8 @@ class ExpenseApp:
         # Back button
         back_btn = tk.Button(
             header,
-            text="← Back to Menu",
-            command=self.show_main_menu,
+            text="← Back to Queries",
+            command=self.show_queries_page,
             font=('Arial', 12),
             bg='#2196F3',
             fg='white',
@@ -300,6 +299,20 @@ class ExpenseApp:
             data
         )
 
+    def show_total_debit_credit(self):
+        """Show total value of both debits and credits"""
+        expenses = self.db.total_debits_credits()
+        data = []
+        for expense in expenses:
+            trans_type, cost = expense
+            data.append((trans_type, f"${cost:.2f}"))
+
+        self.create_result_page(
+            "Total Debits and Credits",
+            ('Transaction type', 'Cost'),
+            data
+        )
+
     def show_monthly_summary(self):
         """Show spending grouped by month"""
         # You'll need to add this method to your Database.py
@@ -317,40 +330,6 @@ class ExpenseApp:
             )
         except AttributeError:
             self.show_placeholder("Monthly Summary")
-
-    def show_by_vendor(self):
-        """Show spending grouped by vendor"""
-        try:
-            expenses = self.db.get_by_vendor()
-            data = []
-            for expense in expenses:
-                vendor, count, total = expense
-                data.append((vendor, count, f"${total:.2f}"))
-
-            self.create_result_page(
-                "Spending by Vendor",
-                ('Vendor', 'Transaction Count', 'Total Spent'),
-                data
-            )
-        except AttributeError:
-            self.show_placeholder("Spending by Vendor")
-
-    def show_by_transaction_type(self):
-        """Show spending grouped by transaction type"""
-        try:
-            expenses = self.db.get_by_transaction_type()
-            data = []
-            for expense in expenses:
-                trans_type, count, total = expense
-                data.append((trans_type, count, f"${total:.2f}"))
-
-            self.create_result_page(
-                "Spending by Transaction Type",
-                ('Transaction Type', 'Count', 'Total Spent'),
-                data
-            )
-        except AttributeError:
-            self.show_placeholder("Spending by Transaction Type")
 
     def show_all_expenses(self):
         """Show all expenses"""
@@ -384,9 +363,63 @@ class ExpenseApp:
             self.container,
             text="← Back to Menu",
             command=self.show_main_menu,
-            font=('Arial', 12)
+            font=('Arial', 12),
+            bg='#2196F3',
+            fg='white'
         )
         back_btn.pack()
+
+    def show_queries_page(self):
+        """Display the queries page"""
+        self.clear_frame()
+
+        # Header frame
+        header = tk.Frame(self.container)
+        header.pack(fill='x', padx=20, pady=20)
+
+        # Title
+        title_label = tk.Label(
+            header,
+            text="📝 Queries",
+            font=('Arial', 28, 'bold')
+        )
+        title_label.pack(side='left')
+
+        # Button frame
+        button_frame = tk.Frame(self.container)
+        button_frame.pack(pady=20)
+
+        # Query buttons
+        queries = [
+            ("🏅 Top 10 Largest Purchases", self.show_top_10),
+            ("📊 Total Debits & Credits", self.show_total_debit_credit),
+        ]
+
+        for text, command in queries:
+            btn = tk.Button(
+                button_frame,
+                text=text,
+                command=command,
+                font=('Arial', 14),
+                width=35,
+                height=2,
+                bg='#4CAF50',
+                fg='white',
+                cursor='hand2'
+            )
+            btn.pack(pady=8)
+
+        # Back button
+        back_btn = tk.Button(
+            header,
+            text="← Back to Menu",
+            command=self.show_main_menu,
+            font=('Arial', 12),
+            bg='#2196F3',
+            fg='white',
+            cursor='hand2'
+        )
+        back_btn.pack(side='right')
 
 
 if __name__ == "__main__":

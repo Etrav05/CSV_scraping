@@ -44,9 +44,22 @@ class ExpensesDB:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                SELECT * FROM expenses
+                SELECT * 
+                FROM expenses
                 WHERE transaction_type NOT LIKE ?
                 ORDER BY cost DESC
                 LIMIT 10
             ''', ('%Debit%',))
             return cursor.fetchall()
+
+    def total_debits_credits(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT transaction_type, SUM(cost) 
+                FROM expenses
+                GROUP BY transaction_type
+                ORDER BY SUM(cost) DESC
+            ''')
+            return cursor.fetchall()
+
