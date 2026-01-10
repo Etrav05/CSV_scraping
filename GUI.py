@@ -198,7 +198,6 @@ class ExpenseApp:
         # Query buttons
         queries = [
             ("📝 Queries", self.show_queries_page),
-            ## ("📊 Top 10 Largest Purchases", self.show_top_10),
             ("📅 Monthly Summary", self.show_monthly_summary),
             ("💲 All Expenses", self.show_all_expenses)
         ]
@@ -313,6 +312,34 @@ class ExpenseApp:
             data
         )
 
+    def show_total_purchase_categories(self):
+        """Show total values of each price categories (Small - Massive)"""
+        expenses = self.db.total_purchase_categories()
+        data = []
+        for expense in expenses:
+            price_cat, cost, count = expense
+            data.append((price_cat, f"${cost:.2f}", count))
+
+        self.create_result_page(
+            "Total Purchase Categories",
+            ('Price Category', 'Cost', 'Transaction Count'),
+            data
+        )
+
+    def show_total_purchases_by_vendor(self):
+        """Show total value of purchases by vendor name"""
+        expenses = self.db.total_purchase_vendor()
+        data = []
+        for expense in expenses:
+            vendor, cost, count = expense
+            data.append((vendor, f"${cost:.2f}", count))
+
+        self.create_result_page(
+            "Total Purchase By Vendor",
+            ('Vendor', 'Cost', 'Transaction Count'),
+            data
+        )
+
     def show_monthly_summary(self):
         """Show spending grouped by month"""
         # You'll need to add this method to your Database.py
@@ -334,7 +361,7 @@ class ExpenseApp:
     def show_all_expenses(self):
         """Show all expenses"""
         try:
-            expenses = self.db.get_all_expenses()
+            expenses = self.db.all_expenses()
             data = []
             for expense in expenses:
                 id, year_month, cost, price_cat, trans_type, vendor = expense
@@ -393,9 +420,15 @@ class ExpenseApp:
         queries = [
             ("🏅 Top 10 Largest Purchases", self.show_top_10),
             ("📊 Total Debits & Credits", self.show_total_debit_credit),
+            ("🛍 Total Purchase Categories", self.show_total_purchase_categories),
+            ("Total Purchases By Vendor", self.show_total_purchases_by_vendor)
         ]
 
-        for text, command in queries:
+        columns = 2
+        for i, (text, command) in enumerate(queries):
+            row = i // columns
+            col = i % columns
+
             btn = tk.Button(
                 button_frame,
                 text=text,
@@ -407,7 +440,7 @@ class ExpenseApp:
                 fg='white',
                 cursor='hand2'
             )
-            btn.pack(pady=8)
+            btn.grid(row=row, column=col, padx=10, pady=8)
 
         # Back button
         back_btn = tk.Button(

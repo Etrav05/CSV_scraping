@@ -1,4 +1,5 @@
 import os
+import re
 from database import ExpensesDB
 
 monthlyCosts = {
@@ -58,6 +59,44 @@ def debit_finder(line):
     else:
         return "Credit"
 
+def vendor_finder(description):
+    # Special Cases
+    if "PREAUTHORIZED DEBIT" in description:
+        description = description.split("PREAUTHORIZED DEBIT", 1)[1].strip()  # Removes preauthorized debit as it is all
+                                                                              # Caps making it hard to tell from vendors
+    if "Branch Transaction" in description:
+        return "BANK"
+
+    parts = description.split()  # Split up words by spaces
+    description_parts = []
+    skipped_long_number = False  # A long banking number can appear before and/or after the vendor name, so I track
+                                 # if it is gone yet
+
+    for part in reversed(parts):  # Start from the end of line (Vendor names were typically at the end)
+        if re.match(r'^\d{8,}$', part):  # Skip the first 8+ digit number we encounter using 're'
+            if not skipped_long_number:
+                skipped_long_number = True
+                continue
+            else:
+                break  # Stop at second long number
+
+        # Also stop at common banking keywords
+        if part.upper() in ['PURCHASE', 'RETAIL', 'INTERAC', 'SALE', 'POINT', 'OF', 'TRANSFER', 'FUNDS', 'ELECTRONIC',
+                            'BANKING', 'INTERNET']:
+            break
+
+        description_parts.insert(0, part)  # Collecting the parts
+
+    vendor = ' '.join(description_parts)
+
+    vendor = ' '.join([word for word in vendor.split() if not word.islower()])  # Remove all lowercase words from the
+                                                                         # vendor (all but one vendor was upper case)
+
+    vendor = re.sub(r'\s*[#C]\d*$', '', vendor)  # Find common patterns with trailing symbols and numbers
+    vendor = vendor.strip()
+
+    return vendor if vendor else "UNKNOWN"
+
 db = ExpensesDB()  # Set up the database
 # path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
 
@@ -88,10 +127,10 @@ def process_csv(path, database):
                 continue  # Skip if no amount
 
             price_cat = price_categorization(cost)
-            # vendor = process_vendor(description)  # TODO
+            vendor = vendor_finder(description)
 
-            print(f"{year_month} - ${cost:.2f} - {price_cat} - {transaction_type}")
-            db.add_expense(year_month, cost, price_cat, transaction_type, vendor="")
+            print(f"{year_month} - ${cost:.2f} - {price_cat} - {transaction_type} - {vendor}")
+            db.add_expense(year_month, cost, price_cat, transaction_type, vendor)
             records_added += 1
 
         return records_added

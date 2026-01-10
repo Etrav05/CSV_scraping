@@ -40,6 +40,15 @@ class ExpensesDB:
             conn.commit()
             return cursor.lastrowid
 
+    def all_expenses(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                     SELECT *
+                     FROM expenses
+                 ''')
+            return cursor.fetchall()
+
     def largest_10_purchases(self):
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -63,3 +72,26 @@ class ExpensesDB:
             ''')
             return cursor.fetchall()
 
+    def total_purchase_categories(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT price_category, SUM(cost), COUNT(*)
+                FROM expenses
+                WHERE transaction_type NOT LIKE ?
+                GROUP BY price_category
+                ORDER BY SUM(Cost) DESC
+            ''', ('%Credit%',))
+            return cursor.fetchall()
+
+    def total_purchase_vendor(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                  SELECT vendor, SUM(cost), COUNT(*)
+                  FROM expenses
+                  WHERE transaction_type NOT LIKE ?
+                  GROUP BY vendor
+                  ORDER BY COUNT(*) DESC
+              ''', ('%Credit%',))
+            return cursor.fetchall()
