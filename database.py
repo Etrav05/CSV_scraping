@@ -40,6 +40,37 @@ class ExpensesDB:
             conn.commit()
             return cursor.lastrowid
 
+    def get_available_years(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT DISTINCT year_month
+                FROM expenses
+            ''')
+
+            years = set()  # Parse for the years here rather than in the GUI
+            for row in cursor.fetchall():
+                year_month = row[0]
+                year = int(year_month[:4])  # Get first 4 characters
+                years.add(year)
+
+            return sorted(years, reverse=True)
+
+    def monthly_debit_credit_given_year(self, year):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                    SELECT 
+                        SUBSTR(year_month, -2, 2) as month,
+                        transaction_type,
+                        SUM(cost) as total
+                    FROM expenses
+                    WHERE SUBSTR(year_month, 1, 4) = ?
+                    GROUP BY month, transaction_type
+                    ORDER BY month
+                ''', (str(year),))
+            return cursor.fetchall()
+
     def all_expenses(self):
         with self.get_connection() as conn:
             cursor = conn.cursor()

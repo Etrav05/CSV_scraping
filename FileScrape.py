@@ -64,18 +64,28 @@ def vendor_finder(description):
     if "PREAUTHORIZED DEBIT" in description:
         description = description.split("PREAUTHORIZED DEBIT", 1)[1].strip()  # Removes preauthorized debit as it is all
                                                                               # Caps making it hard to tell from vendors
+    if "ATM WITHDRAWAL" in description:
+        return "ATM WITHDRAWAL"
+
     if "Branch Transaction" in description:
         return "BANK"
 
     parts = description.split()  # Split up words by spaces
     description_parts = []
-    skipped_long_number = False  # A long banking number can appear before and/or after the vendor name, so I track
+    skipped = False  # A long banking number can appear before and/or after the vendor name, so I track
                                  # if it is gone yet
 
     for part in reversed(parts):  # Start from the end of line (Vendor names were typically at the end)
+        if re.match(r'^[A-Z0-9]{8,}$', part) and re.search(r'[A-Z]', part) and re.search(r'\d', part):
+            if not skipped:
+                skipped = True
+                continue
+            else:
+                break
+
         if re.match(r'^\d{8,}$', part):  # Skip the first 8+ digit number we encounter using 're'
-            if not skipped_long_number:
-                skipped_long_number = True
+            if not skipped:
+                skipped = True
                 continue
             else:
                 break  # Stop at second long number
@@ -89,8 +99,8 @@ def vendor_finder(description):
 
     vendor = ' '.join(description_parts)
 
-    vendor = ' '.join([word for word in vendor.split() if not word.islower()])  # Remove all lowercase words from the
-                                                                         # vendor (all but one vendor was upper case)
+    # Keep words that start with uppercase (allows "Garrison Brewin")
+    vendor = ' '.join([word for word in vendor.split() if word and word[0].isupper()])
 
     vendor = re.sub(r'\s*[#C]\d*$', '', vendor)  # Find common patterns with trailing symbols and numbers
     vendor = vendor.strip()

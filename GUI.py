@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from database import ExpensesDB
+import matplotlib.pyplot as plt
+import numpy as np
 
 class ExpenseApp:
     def __init__(self, root):
@@ -8,7 +10,7 @@ class ExpenseApp:
         self.db = ExpensesDB()
         self.root = root
         self.root.title("Expense Analyzer 3000")
-        self.root.geometry("800x600")
+        self.root.geometry("900x600")
 
         # Container for all frames
         self.container = tk.Frame(root)
@@ -340,23 +342,143 @@ class ExpenseApp:
             data
         )
 
+    ####### MONTHLY SUMMARY #######
     def show_monthly_summary(self):
-        """Show spending grouped by month"""
-        # You'll need to add this method to your Database.py
-        try:
-            expenses = self.db.get_monthly_summary()
-            data = []
-            for expense in expenses:
-                month, count, total = expense
-                data.append((month, count, f"${total:.2f}"))
+        """Show year selection page for monthly summary"""
+        self.clear_frame()
 
-            self.create_result_page(
-                "Monthly Summary",
-                ('Month', 'Transaction Count', 'Total Spent'),
-                data
+        # Header frame
+        header = tk.Frame(self.container)
+        header.pack(fill='x', padx=20, pady=20)
+
+        # Title
+        title_label = tk.Label(
+            header,
+            text="📅 Monthly Summary - Select Year",
+            font=('Arial', 24, 'bold')
+        )
+        title_label.pack(side='left')
+
+        # Back button
+        back_btn = tk.Button(
+            header,
+            text="← Back to Menu",
+            command=self.show_main_menu,
+            font=('Arial', 12),
+            bg='#2196F3',
+            fg='white',
+            cursor='hand2'
+        )
+        back_btn.pack(side='right')
+
+        # Get available years from database
+        try:
+            years = self.db.get_available_years()
+
+            if not years:
+                # No data available
+                msg = tk.Label(
+                    self.container,
+                    text="No expense data available. Please import a CSV file first.",
+                    font=('Arial', 14),
+                    fg='gray'
+                )
+                msg.pack(pady=100)
+                return
+
+            # Instructions
+            instruction = tk.Label(
+                self.container,
+                text="Select a year to view monthly spending:",
+                font=('Arial', 14),
+                fg='gray'
             )
+            instruction.pack(pady=40)
+
+            # Dropdown frame
+            dropdown_frame = tk.Frame(self.container)
+            dropdown_frame.pack(pady=20)
+
+            # Year label
+            year_label = tk.Label(
+                dropdown_frame,
+                text="Year:",
+                font=('Arial', 14)
+            )
+            year_label.pack(side='left', padx=10)
+
+            # Dropdown variable
+            self.selected_year = tk.StringVar()
+            self.selected_year.set(str(years[0]))  # Set default to first year
+
+            # Dropdown menu
+            year_dropdown = ttk.Combobox(
+                dropdown_frame,
+                textvariable=self.selected_year,
+                values=[str(year) for year in years],
+                state='readonly',
+                font=('Arial', 14),
+                width=15
+            )
+            year_dropdown.pack(side='left', padx=10)
+
+            # View chart button
+            view_btn = tk.Button(
+                self.container,
+                text="📊 View Chart",
+                command=lambda: self.show_monthly_chart(int(self.selected_year.get())),
+                font=('Arial', 14),
+                width=20,
+                height=2,
+                bg='#4CAF50',
+                fg='white',
+                cursor='hand2'
+            )
+            view_btn.pack(pady=30)
+
         except AttributeError:
-            self.show_placeholder("Monthly Summary")
+            # Database method doesn't exist yet
+            msg = tk.Label(
+                self.container,
+                text="Database method 'get_available_years()' not yet implemented.",
+                font=('Arial', 14),
+                fg='red',
+                justify='center'
+            )
+            msg.pack(pady=100)
+
+    def show_monthly_chart(self, year):
+        """Show spending chart grouped by month"""
+        expenses = self.db.monthly_debit_credit_given_year(year)
+
+        debit_totals = {f"{i:02d}": 0 for i in range(1, 13)}  # {'01': 0, '02': 0, ...}
+        credit_totals = {f"{i:02d}": 0 for i in range(1, 13)}
+
+        for expense in expenses:
+            month, trans_type, cost = expense
+            if 'Debit' in trans_type:
+                debit_totals[month] = cost
+            if 'Credit' in trans_type:
+                credit_totals[month] = cost
+
+        x_array = np.array(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'])
+
+        y_debit_points = [debit_totals[f"{i:02d}"] for i in range(1, 13)]
+        y_credit_points = [credit_totals[f"{i:02d}"] for i in range(1, 13)]
+
+        plt.plot(x_array, y_debit_points, 'o--r', label='Debit')
+        plt.plot(x_array, y_credit_points, 'o--g', label='Credit')
+
+        plt.title(f"Total Debit/Credit Spending Per Month - {year}")
+        plt.xlabel("Month")
+        plt.ylabel("Total ($)")
+
+        plt.legend()
+        plt.grid(axis='x')
+
+        plt.show()
+
+    ####### MONTHLY SUMMARY END #######
 
     def show_all_expenses(self):
         """Show all expenses"""
