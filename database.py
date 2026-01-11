@@ -126,3 +126,31 @@ class ExpensesDB:
                   ORDER BY COUNT(*) DESC
               ''', ('%Credit%',))
             return cursor.fetchall()
+
+    def total_year_over_year(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT 
+                    SUBSTR(year_month, 1, 4) AS year, 
+                    SUM(cost), 
+                    COUNT(*)
+                FROM expenses
+                WHERE transaction_type NOT LIKE ?
+                GROUP BY year
+                ORDER BY year DESC
+              ''', ('%Credit%',))
+            return cursor.fetchall()
+
+    def average_spending_by_vendor(self, min_transactions=5):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT vendor, AVG(cost), COUNT(*), SUM(cost)
+                FROM expenses
+                WHERE transaction_type NOT LIKE ?
+                GROUP BY vendor
+                HAVING COUNT(*) >= ?
+                ORDER BY AVG(cost) DESC
+            ''', ('%Credit%', min_transactions))
+            return cursor.fetchall()

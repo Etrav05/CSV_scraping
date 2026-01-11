@@ -342,6 +342,34 @@ class ExpenseApp:
             data
         )
 
+    def show_year_over_year_totals(self):
+        """Show total value of purchases by year"""
+        expenses = self.db.total_year_over_year()
+        data = []
+        for expense in expenses:
+            year, cost, count = expense
+            data.append((year, f"${cost:.2f}", count))
+
+        self.create_result_page(
+            "Year over Year Total Spending",
+            ('Year', 'Cost', 'Transaction Count'),
+            data
+        )
+
+    def show_average_spending_by_vendor(self):
+        """Show average value of purchases by vendor"""
+        expenses = self.db.average_spending_by_vendor()
+        data = []
+        for expense in expenses:
+            vendor, average, count, total = expense
+            data.append((vendor, f"${average:.2f}", count, f"${total:.2f}"))
+
+        self.create_result_page(
+            "Average Spending by Vendor",
+            ('Vendor', 'Average', 'Transaction Count', 'Total Spent'),
+            data
+        )
+
     ####### MONTHLY SUMMARY #######
     def show_monthly_summary(self):
         """Show year selection page for monthly summary"""
@@ -477,7 +505,6 @@ class ExpenseApp:
         plt.grid(axis='x')
 
         plt.show()
-
     ####### MONTHLY SUMMARY END #######
 
     def show_all_expenses(self):
@@ -542,8 +569,10 @@ class ExpenseApp:
         queries = [
             ("🏅 Top 10 Largest Purchases", self.show_top_10),
             ("📊 Total Debits & Credits", self.show_total_debit_credit),
-            ("🛍 Total Purchase Categories", self.show_total_purchase_categories),
-            ("Total Purchases By Vendor", self.show_total_purchases_by_vendor)
+            ("📦 Total Purchase Categories", self.show_total_purchase_categories),
+            ("🛍 Total Purchases By Vendor", self.show_total_purchases_by_vendor),
+            ("📅 Year over Year Total Spending", self.show_year_over_year_totals),
+            ("📑 Average Spending by Vendor", self.show_average_spending_by_vendor)
         ]
 
         columns = 2
