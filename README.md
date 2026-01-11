@@ -5,11 +5,16 @@ A simple desktop application to analyze your expenses from CSV files.
 
 
 ## Features
-- Import expenses from CSV files
-- View top 10 largest purchases
-- (Future) Various other queries
-- (Future) Monthly spending summaries
-- (Future) Breakdown by vendor and transaction type
+- Process banking CSV files
+    - View Top 10 Largest Purchases
+    - Total Debits & Credits
+    - Total Purchase Categories
+    - Total Purchases By Vendor
+    - Year-over-Year Total Spending
+    - Average Spending by Vendor
+- Yearly spending summaries
+    - Broken down into monthly Credit and Debit totals
+    - Uses Matplotlib to visualize this data
 - SQLite database storage
 
 ## Installation
