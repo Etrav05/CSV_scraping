@@ -1,16 +1,24 @@
 # Expense Tracker
 A simple desktop application to analyze your expenses from CSV files.
 
-<img width="801" height="630" alt="image" src="https://github.com/user-attachments/assets/e4658647-d037-4270-aeda-9641cab7506a" />
-
+<img width="800" height="630" alt="image" src="https://github.com/user-attachments/assets/e4658647-d037-4270-aeda-9641cab7506a" />
 
 ## Features
-- Import expenses from CSV files
-- View top 10 largest purchases
-- (Future) Various other queries
-- (Future) Monthly spending summaries
-- (Future) Breakdown by vendor and transaction type
+- Process banking CSV files
+    - View Top 10 Largest Purchases
+    - Total Debits & Credits
+    - Total Purchase Categories
+    - Total Purchases By Vendor
+    - Year-over-Year Total Spending
+    - Average Spending by Vendor
+- Yearly spending summaries
+    - Broken down into monthly Credit and Debit totals
+    - Uses Matplotlib to visualize this data
 - SQLite database storage
+
+<img width="900" height="630" alt="image" src="https://github.com/user-attachments/assets/fd713936-7253-4d5e-bda2-7d107a88b81a" />
+
+<img width="900" height="630" alt="image" src="https://github.com/user-attachments/assets/add240de-a62d-433f-956c-ef8e25498a48" />
 
 ## Installation
 1. Clone this repository
