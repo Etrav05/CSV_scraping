@@ -6,6 +6,7 @@ import numpy as np
 
 class ExpenseApp:
     def __init__(self, root):
+        self.back_command = None
         self.file_path_entry = None
         self.db = ExpensesDB()
         self.root = root
@@ -218,7 +219,7 @@ class ExpenseApp:
             )
             btn.pack(pady=8)
 
-    def create_result_page(self, title, columns, data):
+    def create_result_page(self, title, columns, data, back_command=None):
         """Generic function to create a results page"""
         self.clear_frame()
 
@@ -234,11 +235,14 @@ class ExpenseApp:
         )
         title_label.pack(side='left')
 
+        if back_command is None:
+            back_command = self.show_queries_page
+
         # Back button
         back_btn = tk.Button(
             header,
-            text="← Back to Queries",
-            command=self.show_queries_page,
+            text="← Back to Menu" if back_command == self.show_main_menu else "← Back to Queries",
+            command=back_command,
             font=('Arial', 12),
             bg='#2196F3',
             fg='white',
@@ -297,7 +301,8 @@ class ExpenseApp:
         self.create_result_page(
             "Top 10 Largest Purchases",
             ('Date', 'Cost', 'Transaction Type', 'Vendor'),
-            data
+            data,
+            back_command=self.show_queries_page
         )
 
     def show_total_debit_credit(self):
@@ -311,7 +316,8 @@ class ExpenseApp:
         self.create_result_page(
             "Total Debits and Credits",
             ('Transaction type', 'Cost'),
-            data
+            data,
+            back_command=self.show_queries_page
         )
 
     def show_total_purchase_categories(self):
@@ -325,7 +331,8 @@ class ExpenseApp:
         self.create_result_page(
             "Total Purchase Categories",
             ('Price Category', 'Cost', 'Transaction Count'),
-            data
+            data,
+            back_command=self.show_queries_page
         )
 
     def show_total_purchases_by_vendor(self):
@@ -339,7 +346,8 @@ class ExpenseApp:
         self.create_result_page(
             "Total Purchase By Vendor",
             ('Vendor', 'Cost', 'Transaction Count'),
-            data
+            data,
+            back_command=self.show_queries_page
         )
 
     def show_year_over_year_totals(self):
@@ -353,7 +361,8 @@ class ExpenseApp:
         self.create_result_page(
             "Year over Year Total Spending",
             ('Year', 'Cost', 'Transaction Count'),
-            data
+            data,
+            back_command=self.show_queries_page
         )
 
     def show_average_spending_by_vendor(self):
@@ -367,7 +376,8 @@ class ExpenseApp:
         self.create_result_page(
             "Average Spending by Vendor",
             ('Vendor', 'Average', 'Transaction Count', 'Total Spent'),
-            data
+            data,
+            back_command=self.show_queries_page
         )
 
     ####### MONTHLY SUMMARY #######
@@ -519,7 +529,8 @@ class ExpenseApp:
             self.create_result_page(
                 "All Expenses",
                 ('Date', 'Cost', 'Category', 'Type', 'Vendor'),
-                data
+                data,
+                back_command=self.show_main_menu
             )
         except AttributeError:
             self.show_placeholder("All Expenses")
@@ -571,7 +582,7 @@ class ExpenseApp:
             ("📊 Total Debits & Credits", self.show_total_debit_credit),
             ("📦 Total Purchase Categories", self.show_total_purchase_categories),
             ("🛍 Total Purchases By Vendor", self.show_total_purchases_by_vendor),
-            ("📅 Year over Year Total Spending", self.show_year_over_year_totals),
+            ("📅 Year-over-Year Total Spending", self.show_year_over_year_totals),
             ("📑 Average Spending by Vendor", self.show_average_spending_by_vendor)
         ]
 
