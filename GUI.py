@@ -228,7 +228,8 @@ class ExpenseApp:
         queries = [
             ("📝 Queries", self.show_queries_page),
             ("📅 Monthly Summary", self.show_monthly_summary),
-            ("💲 All Expenses", self.show_all_expenses)
+            ("💲 All Expenses", self.show_all_expenses),
+            ("📋 Summary", self.show_summary)
         ]
 
         for text, command in queries:
@@ -492,6 +493,114 @@ class ExpenseApp:
                 font=('Arial', 14), width=35, height=2,
                 bg='#4CAF50', fg='white', cursor='hand2'
             ).grid(row=i // columns, column=i % columns, padx=10, pady=8)
+
+
+    def show_summary(self):
+        self.clear_frame()
+
+        # ── Header ──────────────────────────────────────────────────────────────
+        header = tk.Frame(self.container)
+        header.pack(fill='x', padx=20, pady=(20, 10))
+
+        tk.Label(header, text="📋 Summary", font=('Arial', 24, 'bold')).pack(side='left')
+
+        tk.Button(
+            header, text="← Back to Menu", command=self.show_main_menu,
+            font=('Arial', 12), bg='#2196F3', fg='white', cursor='hand2'
+        ).pack(side='right')
+
+        # ── Scrollable body ──────────────────────────────────────────────────────
+        body_frame = tk.Frame(self.container)
+        body_frame.pack(fill='both', expand=True, padx=20, pady=(0, 10))
+
+        canvas = tk.Canvas(body_frame, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(body_frame, orient='vertical', command=canvas.yview)
+        self._summary_grid = tk.Frame(canvas)
+
+        self._summary_grid.bind(
+            '<Configure>',
+            lambda e: canvas.configure(scrollregion=canvas.bbox('all'))
+        )
+        canvas.create_window((0, 0), window=self._summary_grid, anchor='nw')
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side='left', fill='both', expand=True)
+        scrollbar.pack(side='right', fill='y')
+
+        # Mouse-wheel scrolling
+        canvas.bind('<Enter>', lambda e: canvas.bind_all('<MouseWheel>',
+            lambda ev: canvas.yview_scroll(-1 * (ev.delta // 120), 'units')))
+        canvas.bind('<Leave>', lambda e: canvas.unbind_all('<MouseWheel>'))
+
+        # ── Sections ─────────────────────────────────────────────────────────────
+        self._summary_add_avg_debit_credit()
+
+    # ── Summary helpers ────────────────────────────────────────────────────────
+
+    def _summary_section(self, title):
+        """Add a full-width section header to the summary grid."""
+        tk.Label(
+            self._summary_grid,
+            text=title,
+            font=('Arial', 13, 'bold'),
+            fg='#555',
+            anchor='w'
+        ).grid(row=self._summary_next_row(), column=0, columnspan=4,
+               sticky='w', padx=10, pady=(20, 4))
+
+        ttk.Separator(self._summary_grid, orient='horizontal').grid(
+            row=self._summary_next_row(), column=0, columnspan=4,
+            sticky='ew', padx=10, pady=(0, 10)
+        )
+
+    def _summary_card(self, label, value, col, row, bg='#E3F2FD', fg='#0D47A1'):
+        """Render a single stat card at the given grid position."""
+        card = tk.Frame(
+            self._summary_grid,
+            bg=bg,
+            relief='flat',
+            bd=0,
+            highlightbackground='#BBDEFB',
+            highlightthickness=1
+        )
+        card.grid(row=row, column=col, padx=10, pady=6, sticky='nsew')
+        self._summary_grid.columnconfigure(col, weight=1)
+
+        tk.Label(card, text=value, font=('Arial', 20, 'bold'),
+                 bg=bg, fg=fg).pack(pady=(14, 2))
+        tk.Label(card, text=label, font=('Arial', 10),
+                 bg=bg, fg='#555').pack(pady=(0, 14))
+
+    def _summary_next_row(self):
+        """Return the next unused grid row index."""
+        if not hasattr(self, '_sum_row'):
+            self._sum_row = 0
+        else:
+            self._sum_row += 1
+        return self._sum_row
+
+    def _summary_add_avg_debit_credit(self):
+        """Outlier-trimmed average debit vs credit card pair."""
+        self._sum_row = 0  # reset row counter each time summary is built
+
+        results = self.db.average_debit_credit_overall()
+
+        # Parse whichever rows came back (order not guaranteed)
+        avgs = {'Debit': None, 'Credit': None}
+        for trans_type, cleaned_avg in results:
+            if trans_type in avgs:
+                avgs[trans_type] = cleaned_avg
+
+        self._summary_section("💳  Average Transaction")
+
+        card_row = self._summary_next_row()
+        debit_val  = f"${avgs['Debit']:.2f}"  if avgs['Debit']  is not None else "N/A"
+        credit_val = f"${avgs['Credit']:.2f}" if avgs['Credit'] is not None else "N/A"
+
+        self._summary_card("Avg Debit",  debit_val,  col=0, row=card_row,
+                           bg='#FFEBEE', fg='#B71C1C')
+        self._summary_card("Avg Credit", credit_val, col=1, row=card_row,
+                           bg='#E8F5E9', fg='#1B5E20')
 
 
 if __name__ == "__main__":

@@ -185,6 +185,31 @@ class ExpensesDB:
     def delete_database(self):
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute('DELETE FROM expenses')
-            cursor.execute('DELETE FROM file_imports')
+            cursor.execute('''DELETE FROM expenses''')
+            cursor.execute('''DELETE FROM file_imports''')
             conn.commit()
+
+#  -------------- Summary --------------
+    def average_debit_credit_overall(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                WITH SpendingStats AS (
+                    SELECT
+                        transaction_type,
+                        cost,
+                        AVG(cost) OVER(PARTITION BY transaction_type) AS spend_avg,
+                        SQRT(
+                            AVG(cost * cost) OVER(PARTITION BY transaction_type) -
+                            AVG(cost) OVER(PARTITION BY transaction_type) *
+                            AVG(cost) OVER(PARTITION BY transaction_type)
+                        ) AS spend_stddev
+                    FROM expenses
+                )
+                SELECT transaction_type, AVG(cost) AS cleaned_avg
+                FROM SpendingStats
+                WHERE cost BETWEEN (spend_avg - (2 * spend_stddev)) AND (spend_avg + (2 * spend_stddev)) 
+                GROUP BY transaction_type
+                HAVING COUNT(*) > 1
+            ''')
+            return cursor.fetchall()
