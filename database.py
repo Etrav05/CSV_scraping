@@ -5,10 +5,9 @@ import sys
 
 class ExpensesDB:
     def __init__(self, db_name='expenses.db'):
-        if getattr(sys, 'frozen', False):
-            base_dir = os.path.dirname(sys.executable)
-        else:
-            base_dir = os.path.dirname(os.path.abspath(__file__))
+        app_data = os.environ.get('APPDATA', os.path.expanduser('~'))
+        base_dir = os.path.join(app_data, 'ExpenseAnalyzer3000')
+        os.makedirs(base_dir, exist_ok=True)
         self.db_name = os.path.join(base_dir, db_name)
         self.init_db()
 

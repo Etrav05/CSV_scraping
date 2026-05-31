@@ -18,9 +18,6 @@ class ExpenseApp:
 
         self.show_import_page()
 
-        self.status_label = None
-        self.selected_year = None
-
     def clear_frame(self):
         for widget in self.container.winfo_children():
             widget.destroy()
@@ -190,8 +187,8 @@ class ExpenseApp:
 
             records_added = process_csv(file_path, self.db)
 
-            # Rebuild the page so the submitted-files panel reflects the new import
             self.show_import_page()
+            self.root.update()  # ← let the page finish rendering before touching status_label
             self.status_label.config(
                 text=f"✅ Success! Added {records_added} records to database",
                 fg='green'
