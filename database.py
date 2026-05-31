@@ -213,3 +213,68 @@ class ExpensesDB:
                 HAVING COUNT(*) > 1
             ''')
             return cursor.fetchall()
+
+    def summary_totals(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT
+                    SUM(CASE WHEN transaction_type NOT LIKE '%Credit%' THEN cost ELSE 0 END) AS total_spent,
+                    SUM(CASE WHEN transaction_type LIKE '%Credit%' THEN cost ELSE 0 END) AS total_received,
+                    COUNT(*) AS total_transactions
+                FROM expenses
+            ''')
+            return cursor.fetchone()
+
+    def summary_biggest_purchase(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT vendor, cost
+                FROM expenses
+                WHERE transaction_type NOT LIKE '%Credit%'
+                ORDER BY cost DESC
+                LIMIT 1
+            ''')
+            return cursor.fetchone()
+
+    def summary_top_vendor(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT vendor, COUNT(*) as visits
+                FROM expenses
+                WHERE transaction_type NOT LIKE '%Credit%'
+                GROUP BY vendor
+                ORDER BY visits DESC
+                LIMIT 1
+            ''')
+            return cursor.fetchone()
+
+    def avg_transactions_per_month(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT transaction_type, AVG(monthly_count) AS avg_per_month
+                FROM (
+                    SELECT year_month, transaction_type, COUNT(*) AS monthly_count
+                    FROM expenses
+                    GROUP BY year_month, transaction_type
+                )
+                GROUP BY transaction_type
+            ''')
+            return cursor.fetchall()
+
+    def summary_highest_avg_vendor(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT vendor, AVG(cost) as avg_cost
+                FROM expenses
+                WHERE transaction_type NOT LIKE '%Credit%'
+                GROUP BY vendor
+                HAVING COUNT(*) >= 5
+                ORDER BY avg_cost DESC
+                LIMIT 1
+            ''')
+            return cursor.fetchone()

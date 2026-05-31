@@ -18,6 +18,9 @@ class ExpenseApp:
 
         self.show_import_page()
 
+        self.status_label = None
+        self.selected_year = None
+
     def clear_frame(self):
         for widget in self.container.winfo_children():
             widget.destroy()
@@ -411,7 +414,7 @@ class ExpenseApp:
     def show_monthly_chart(self, year):
         expenses = self.db.monthly_debit_credit_given_year(year)
 
-        debit_totals  = {f"{i:02d}": 0 for i in range(1, 13)}
+        debit_totals = {f"{i:02d}": 0 for i in range(1, 13)}
         credit_totals = {f"{i:02d}": 0 for i in range(1, 13)}
 
         for month, trans_type, cost in expenses:
@@ -420,8 +423,8 @@ class ExpenseApp:
             if 'Credit' in trans_type:
                 credit_totals[month] = cost
 
-        x_array = np.array(['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec'])
-        y_debit  = [debit_totals[f"{i:02d}"]  for i in range(1, 13)]
+        x_array = np.array(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'])
+        y_debit = [debit_totals[f"{i:02d}"] for i in range(1, 13)]
         y_credit = [credit_totals[f"{i:02d}"] for i in range(1, 13)]
 
         plt.plot(x_array, y_debit,  'o--r', label='Debit')
@@ -494,7 +497,6 @@ class ExpenseApp:
                 bg='#4CAF50', fg='white', cursor='hand2'
             ).grid(row=i // columns, column=i % columns, padx=10, pady=8)
 
-
     def show_summary(self):
         self.clear_frame()
 
@@ -529,11 +531,15 @@ class ExpenseApp:
 
         # Mouse-wheel scrolling
         canvas.bind('<Enter>', lambda e: canvas.bind_all('<MouseWheel>',
-            lambda ev: canvas.yview_scroll(-1 * (ev.delta // 120), 'units')))
+                    lambda ev: canvas.yview_scroll(-1 * (ev.delta // 120), 'units')))
         canvas.bind('<Leave>', lambda e: canvas.unbind_all('<MouseWheel>'))
 
         # ── Sections ─────────────────────────────────────────────────────────────
+        self._sum_row = 0
+        self._summary_add_totals()
         self._summary_add_avg_debit_credit()
+        self._summary_add_avg_transactions_per_month()
+        self._summary_add_highlights()
 
     # ── Summary helpers ────────────────────────────────────────────────────────
 
@@ -579,10 +585,77 @@ class ExpenseApp:
             self._sum_row += 1
         return self._sum_row
 
+    def _summary_add_totals(self):
+        """Total spent, received, and transaction count."""
+        row = self.db.summary_totals()
+        total_spent, total_received, total_transactions = row if row else (None, None, None)
+
+        self._summary_section("💰  Totals")
+        card_row = self._summary_next_row()
+
+        self._summary_card("Total Spent",
+                           f"${total_spent:,.2f}" if total_spent else "N/A",
+                           col=0, row=card_row, bg='#FFEBEE', fg='#B71C1C')
+        self._summary_card("Total Received",
+                           f"${total_received:,.2f}" if total_received else "N/A",
+                           col=1, row=card_row, bg='#E8F5E9', fg='#1B5E20')
+        self._summary_card("Total Transactions",
+                           f"{total_transactions:,}" if total_transactions else "N/A",
+                           col=2, row=card_row)
+
+    def _summary_add_avg_transactions_per_month(self):
+        """Average number of debit and credit transactions per month."""
+        results = self.db.avg_transactions_per_month()
+
+        avgs = {'Debit': None, 'Credit': None}
+        for trans_type, avg in results:
+            if trans_type in avgs:
+                avgs[trans_type] = avg
+
+        self._summary_section("📅  Avg Transactions Per Month")
+        card_row = self._summary_next_row()
+
+        self._summary_card("Debit Transactions",
+                           f"{avgs['Debit']:.1f}" if avgs['Debit'] is not None else "N/A",
+                           col=0, row=card_row, bg='#FFEBEE', fg='#B71C1C')
+        self._summary_card("Credit Transactions",
+                           f"{avgs['Credit']:.1f}" if avgs['Credit'] is not None else "N/A",
+                           col=1, row=card_row, bg='#E8F5E9', fg='#1B5E20')
+
+    def _summary_add_highlights(self):
+        """Biggest purchase, top vendor, highest avg vendor."""
+        self._summary_section("🏆  Highlights")
+        card_row = self._summary_next_row()
+
+        biggest = self.db.largest_10_purchases()
+        if biggest:
+            vendor, cost = biggest[0][5], biggest[0][2]
+            self._summary_card("Biggest Purchase",
+                               f"${cost:,.2f}\n{vendor}",
+                               col=0, row=card_row, bg='#FFF8E1', fg='#E65100')
+        else:
+            self._summary_card("Biggest Purchase", "N/A", col=0, row=card_row)
+
+        top_vendor = self.db.total_purchase_vendor()
+        if top_vendor:
+            vendor, cost, visits = top_vendor[0]
+            self._summary_card("Most Visited",
+                               f"{vendor}\n{visits} visits",
+                               col=1, row=card_row, bg='#F3E5F5', fg='#4A148C')
+        else:
+            self._summary_card("Most Visited", "N/A", col=1, row=card_row)
+
+        high_avg = self.db.average_spending_by_vendor()
+        if high_avg:
+            vendor, avg_cost, count, total = high_avg[0]
+            self._summary_card("Highest Avg Spend",
+                               f"${avg_cost:,.2f}\n{vendor}",
+                               col=2, row=card_row, bg='#E8EAF6', fg='#1A237E')
+        else:
+            self._summary_card("Highest Avg Spend", "N/A", col=2, row=card_row)
+
     def _summary_add_avg_debit_credit(self):
         """Outlier-trimmed average debit vs credit card pair."""
-        self._sum_row = 0  # reset row counter each time summary is built
-
         results = self.db.average_debit_credit_overall()
 
         # Parse whichever rows came back (order not guaranteed)
@@ -594,7 +667,7 @@ class ExpenseApp:
         self._summary_section("💳  Average Transaction")
 
         card_row = self._summary_next_row()
-        debit_val  = f"${avgs['Debit']:.2f}"  if avgs['Debit']  is not None else "N/A"
+        debit_val = f"${avgs['Debit']:.2f}" if avgs['Debit'] is not None else "N/A"
         credit_val = f"${avgs['Credit']:.2f}" if avgs['Credit'] is not None else "N/A"
 
         self._summary_card("Avg Debit",  debit_val,  col=0, row=card_row,
