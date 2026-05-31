@@ -87,7 +87,7 @@ def process_csv(path, database):
     with open(path, "r") as file:
         for line in file:
             line = line.strip().rstrip(',')  # Remove trailing spaces and commas
-            parts = line.split(',')  # split the line up into parts
+            parts = line.split(',')  # split the line into parts
 
             date = parts[0]  # Get the first part (date)
             year_month = '-'.join(date.split('-')[:2])  # Extract year-month

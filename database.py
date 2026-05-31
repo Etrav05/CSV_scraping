@@ -1,14 +1,20 @@
 import sqlite3
 from contextlib import contextmanager
+import os
+import sys
 
 class ExpensesDB:
     def __init__(self, db_name='expenses.db'):
-        self.db_name = db_name
-        self.init_db()
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        self.db_name = os.path.join(base_dir, db_name)
 
     @contextmanager
     def get_connection(self):
-        conn = sqlite3.connect('expenses.db')
+        conn = sqlite3.connect(self.db_name)
         try:
             yield conn
         finally:
