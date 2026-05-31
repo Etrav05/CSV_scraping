@@ -111,7 +111,7 @@ def process_csv(path, database):
             vendor = vendor_finder(description)
 
             print(f"{year_month} - ${cost:.2f} - {price_cat} - {transaction_type} - {vendor}")
-            db.add_expense(year_month, cost, price_cat, transaction_type, vendor)
+            database.add_expense(year_month, cost, price_cat, transaction_type, vendor)
             records_added += 1
 
         database.log_import(path, records_added)

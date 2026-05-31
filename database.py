@@ -9,8 +9,8 @@ class ExpensesDB:
             base_dir = os.path.dirname(sys.executable)
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
-
         self.db_name = os.path.join(base_dir, db_name)
+        self.init_db()
 
     @contextmanager
     def get_connection(self):
@@ -232,31 +232,6 @@ class ExpensesDB:
             ''')
             return cursor.fetchone()
 
-    def summary_biggest_purchase(self):
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT vendor, cost
-                FROM expenses
-                WHERE transaction_type NOT LIKE '%Credit%'
-                ORDER BY cost DESC
-                LIMIT 1
-            ''')
-            return cursor.fetchone()
-
-    def summary_top_vendor(self):
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT vendor, COUNT(*) as visits
-                FROM expenses
-                WHERE transaction_type NOT LIKE '%Credit%'
-                GROUP BY vendor
-                ORDER BY visits DESC
-                LIMIT 1
-            ''')
-            return cursor.fetchone()
-
     def avg_transactions_per_month(self):
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -270,17 +245,3 @@ class ExpensesDB:
                 GROUP BY transaction_type
             ''')
             return cursor.fetchall()
-
-    def summary_highest_avg_vendor(self):
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT vendor, AVG(cost) as avg_cost
-                FROM expenses
-                WHERE transaction_type NOT LIKE '%Credit%'
-                GROUP BY vendor
-                HAVING COUNT(*) >= 5
-                ORDER BY avg_cost DESC
-                LIMIT 1
-            ''')
-            return cursor.fetchone()
