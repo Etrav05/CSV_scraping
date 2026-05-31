@@ -78,9 +78,6 @@ def vendor_finder(description):
 
     return vendor if vendor else "UNKNOWN"
 
-db = ExpensesDB()  # Set up the database
-# path = 'C:\\Users\\User\\Downloads\\CSV_Financial_Reader.txt'
-
 def process_csv(path, database):
     records_added = 0  # Track how many records added
 
