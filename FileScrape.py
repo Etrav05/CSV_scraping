@@ -8,35 +8,6 @@ monthlyCosts = {
     "Credit": [0.0] * 12,  # Initialize with 12 months of 0.0
     "Debit": [0.0] * 12,
 }
-'''
-categories = {
-    "food": ["subway", "popeyes", "sunset", "dairy queen", "tim hortons", "wendy's", "famous wok",
-             "cafe", "boston", "roxbury", "chicken", "swiss", "bulk barn", "mcdonald's", "coke", "bitter end",
-             "starbucks", "domino's", "harveys", "valens", "wayback", "hasty", "panera", "settlers", "twice",
-             "montana's", "keg", "collins", "ada*vending", "willie's", "a1", "big bear", "parkside", "ichiki",
-             "rockton berry", "foodland", "jax sweet", "mr gao", "arby's", "sports bar", "kfc", "beaner munky",
-             "chungchun rice", "brant county", "dominos", "yogurtys froyo", "dyments farm", "sobeys",
-             "willie dog", "mcmaster hospit", "m m bar", "thirsty cactus", "marcy's berries", "metro", "zehrs",
-             "sh vending", "cafe domestiiqu", "lagershed", "jesses tap gr", "bitter end", "cabin coffee",
-             "rockton lions"],
-
-    "living": ["shoppers drug", "staples", "urban", "archies", "sport chek", "boathouse " ],
-
-    "transport": ["metrolinx"],
-
-    "tuition": ["conestoga", "mcmaster university"],
-
-    "entertainment": ["galaxy cinemas", "indigo", "flying", "ibowl" "rockton", "crunchyroll", "k1 speed"],
-
-    "gas": ["petro canada"],
-
-    "other": ["dollarama", "fuald'd motel", "dollar planet", "swiss plus", "amazon", "electronic funds transfer debit",
-              "e-transfer", "amazon.ca", "lcbo/rao", "lcbo", "walmart", "electronic funds transfer preauthorized debit",
-              "amzn mktp", "canadian tire", "sail outdoors", "mcmaster campus", "body shop"],
-
-    "income": ["internet deposit", "electronic funds transfer credit"],
-}
-'''
 
 def price_categorization(cost):
     if cost < 10.00:
@@ -142,5 +113,7 @@ def process_csv(path, database):
             print(f"{year_month} - ${cost:.2f} - {price_cat} - {transaction_type} - {vendor}")
             db.add_expense(year_month, cost, price_cat, transaction_type, vendor)
             records_added += 1
+
+        database.log_import(path, records_added)
 
         return records_added

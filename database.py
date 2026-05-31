@@ -27,7 +27,34 @@ class ExpensesDB:
                     vendor TEXT
                 )
             ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS file_imports (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    file_path TEXT NOT NULL,
+                    records_added INTEGER NOT NULL,
+                    imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
             conn.commit()
+
+    def log_import(self, file_path, records_added):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO file_imports (file_path, records_added)
+                VALUES (?, ?)
+            ''', (file_path, records_added))
+            conn.commit()
+
+    def get_imported_files(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT file_path, records_added, imported_at
+                FROM file_imports
+                ORDER BY imported_at DESC
+            ''')
+            return cursor.fetchall()
 
     def add_expense(self, year_month, cost, price_cat, transaction_type, vendor=""):
         with self.get_connection() as conn:
@@ -154,3 +181,10 @@ class ExpensesDB:
                 ORDER BY AVG(cost) DESC
             ''', ('%Credit%', min_transactions))
             return cursor.fetchall()
+
+    def delete_database(self):
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM expenses')
+            cursor.execute('DELETE FROM file_imports')
+            conn.commit()
